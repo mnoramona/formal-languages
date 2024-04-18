@@ -1,0 +1,108 @@
+\title{README}
+
+\section{Despre implementare}
+
+\subsection{Fisiere}
+Am cele 3 exemple date, fisierul \emph{3.tex} si fisierul \emph{README.tex}, adica inca 2 exemple, dintre care unul este cel de README.
+Toate acestea dau un fisier ouput de \textt{.md} (aici am facut voit \textit{cica}, sa arat ca nu ia orice prostie)(\texttt{.md}*) cu acelasi nume ca si cel de input.
+
+\subsection{Despre implementare}
+\begin{itemize}
+    \item am inceput implementarea starilor pentru titlu, sectiune (subsectiune, subsubsectiune etc.)
+    \item pentru stilurile de text m-am folosit de fiecare acolada pentru a forma stilul respectiv, ca sa nu ma complic sa stau sa scot de fiecare data acoladele
+    \item pentru quotation mi-am initializat un \textbf{contor} care sa numere cate cuvinte sunt pe linie, iar cand ajunge la 10 sa treaca pe urmatoarea linie, contorul luand-o de la capat
+    \item pentru verbatim, in momentul in care se intalneste un \texttt{endline} se trece pe urmatoarea linie, alaturi de un \texttt{tab}
+    \item in momentul in care m-am apucat de itemize si enumerate, am schimbat modul de lucru, folosind o stiva de stari, pentru a putea avea itemize in itemize, enumerate in enumerate,
+    \item pentru itemize am folosit un \textbf{contor} care sa numere cate liste sunt deschise, pentru a retine pentru fiecare cate un numar diferit de taburi, pentru vizibilitate
+    \item pentru enumerate m-am folosit de acelasi \textbf{contor} ca la itemize, doar ca acum am adaugat si un \texttt{vector} in care sa retin numarul de ordine al fiecarui element, diferit pentru fiecare lista
+    \item am facut o stare diferita pentru \textit{comentarii}, pentru a le ignora
+    \item dintr-un motiv sau altul, am lasat \emph{link-ul} la final, initial il tratam la fel ca stilurile de text pana am observat ca are si un \texttt{nume}, asa ca am adaugat o stare separata, doar pentru discutia parantezelor mai mult
+    \item am incercat sa ignor orice altceva
+\end{itemize}
+
+\subsection{Probleme intalnite la implementare}
+\begin{enumerate}
+    \item - d \textit{enumerate} \begin{enumerate}
+        \item - am uitat toata programarea de anii trecuti si m-am luptat putin cu vectorul
+        \item - am asaaaaaaaaaaaaaaaaaa uitat ca \texttt{vector-ul} incepe de la 0, nu de la 1, ceva basic
+        \item - la un moment dat imi numara plecand de la 34, \textit{nu ma intrebati de ce}
+        \item - acum cand scriu README-ul am descoperi ca daca deschid iar o a doua lista, numerotarea incepe de unde a ramas data trecuta
+        \end{enumerate}
+    \item \textit{itemize} - aceeasi discutie ca mai sus, \texttt{vectorul} incepe de la 0, nu de la 1
+    \item \textit{quotation} \begin{enumerate}
+        \item - aveam ideea ca in momentul in care ajung la un numar mai mare decat 10, sa trec pe urmatoarea linie, dar ajungeam la 11 care mai astepta un cuvant, automat se strica numerotarea pe celelate linii
+        \item - am avut probleme cand sa pun ">", aveam fie de doua ori pe prima linie din paragrafe, fie aveam unul la final de tot
+        \end{enumerate}
+    \item \textit{comentarii latex} - asta este o problema pe care nu am rezolvat-o, am lasat codul in care am incercat sa tratez si alte combinatii care nu ar indica o comanda, dar in momentul in care vreau sa trec peste ceva (starea \textbf{OTHER}), cand caut \texttt{\ceva}, imi ia cu tot cu titlu, sectiune si mai multe, asa ca m-am lasat
+\end{enumerate}
+
+\subsection{Observatii}
+Acum cand incerc sa scriu README-ul, imi dau seama ca am facut o gramada de greseli, dar nu mai am timp sa le corectez, asa ca le las asa, sa se vada ca am incercat sa fac ceva. Plus ca acum pare ca nu mai merge nimic si nu imi mai modifica fisierul de output. Nu mai pot.
+
+O sa las aici portiunile de cod pe care le-am mai incercat:
+
+Pentru \textit{enumerate}:
+\begin{verbatim}
+    <ENUMERATE>"\\end{enumerate}" {
+    itemize_level--;
+
+    // Verificăm dacă item_count există înainte de a face operații pe el
+    if (item_count != NULL && itemize_level >= 0) {
+        item_count[itemize_level]++;
+        printf("%d. ", item_count[itemize_level]);
+    }
+    else {
+        // Dacă itemize_level devine negativ, îl resetăm și eliberăm memoria pentru item_count
+        itemize_level = 0;
+        if (item_count != NULL) {
+            free(item_count);
+            item_count = NULL;
+            item_count_size = 0;
+        }
+    }
+
+    yy_pop_state();
+}
+
+<ENUMERATE>"\\item[ ]*\\begin{enumerate}" {
+    itemize_level++;
+
+    // Eliberăm memoria pentru item_count dacă există
+    if (item_count != NULL) {
+        free(item_count);
+        item_count = NULL;
+        item_count_size = 0;
+    }
+}
+
+<ENUMERATE>"\\item" {
+    for (int i = 0; i < itemize_level; i++) {
+        printf("\t");
+    }
+
+    // Verificăm dacă item_count există înainte de a face operații pe el
+    if (item_count == NULL) {
+        item_count = (int*)malloc(sizeof(int));
+        item_count_size = 1;
+        item_count[0] = 0;
+    } else {
+        item_count[itemize_level]++;
+        printf("%d. ", item_count[itemize_level]);
+    }
+}
+\end{verbatim}
+
+Pentru \textit{comentarii latex}:
+\begin{verbatim}
+<INITIAL>\\[a-zA-Z0-9ăâîșțĂÂÎȘȚ]* { }
+<INITIAL>\\[a-zA-Z0-9ăâîșțĂÂÎȘȚ]*\{ { yy_push_state(OTHER); }
+<INITIAL>\\[a-zA-Z0-9ăâîșțĂÂÎȘȚ]*\} { }
+<INITIAL>\\[a-zA-Z0-9ăâîșțĂÂÎȘȚ]*\[ { yy_push_state(OTHER);}
+<INITIAL>\\[a-zA-Z0-9ăâîșțĂÂÎȘȚ]*\] { }
+
+<OTHER>\} { yy_pop_state(); }
+<OTHER>\] { yy_pop_state(); }
+<OTHER>\]\{ { }
+<OTHER>\}\{ { }
+<OTHER>. { }
+\end{verbatim}
